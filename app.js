@@ -1,62 +1,45 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
-var logger = require('morgan');
+const cookieParser = require('cookie-parser');
+const createError = require('http-errors');
+const bodyParser = require('body-parser');
+const express = require('express');
+const logger = require('morgan');
+const path = require('path');
 require('dotenv').config();
 
-var indexRouter = require('./routes');
-var adminRouter = require('./routes/admin');
+const indexRouter = require('./routes');
+const adminRouter = require('./routes/admin');
+const app = express();
 
-var app = express();
-
-//postgres connection
 const initOptions = {
-	// global event notification;F
-	error(error, e) {
-		if (e.cn) {
-			// A connection-related error;
-			//
-			// Connections are reported back with the password hashed,
-			// for safe errors logging, without exposing passwords.
-			console.log('CN:', e.cn);
-			console.log('EVENT:', error.message || error);
-		}
-	}
+    error (error, e) {
+        console.error(error.message || error);
+        if (e.cn)
+            console.log('cn:', e.cn);
+    },
 };
 
 const pgp = require('pg-promise')(initOptions);
+const db = pgp('postgres://postgres:postgres@localhost:5432/oletskiidb4');
 
-const db = pgp('postgres://' + process.env.DB_USER + ':' + process.env.DB_PASS + '@' + process.env.DB_HOST + ':' + process.env.DB_PORT + '/' + process.env.DB_NAME);
-
-//test db connection during app is starting
+//test db connection during app's startup
 db.connect()
-	.then(obj => { // db connection testing
-		obj.done();
-	})
-	.catch(error => {
-		console.log('ERROR:', error.message || error);
-	});
+    .then(obj => {
+        // connected
+        obj.done();
+    })
+    .catch(error => {
+        console.log('COULDN\'T CONNECT TO DATABASE:', error.message || error);
+    });
 
-// Add headers
+// Headers appending
 app.use(function (req, res, next) {
-
-	// Website you wish to allow to connect
-	res.setHeader('Access-Control-Allow-Origin', '*');
-
-	// Request methods you wish to allow
-	res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-
-	// Request headers you wish to allow
-	res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
-
-	// Set to true if you need the website to include cookies in the requests sent
-	// to the API (e.g. in case you use sessions)
-	res.setHeader('Access-Control-Allow-Credentials', true);
-
-	// Pass to next layer of middleware
-	next();
+    Object.entries({
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, PUT, PATCH, DELETE',
+        'Access-Control-Allow-Headers': 'X-Requested-With,content-type',
+        'Access-Control-Allow-Credentials': true,
+    }).map(([key, value]) => res.setHeader(key, value));
+    next();
 });
 
 // view engine setup
@@ -68,7 +51,7 @@ app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 app.use(bodyParser.json());       // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
-	extended: true
+    extended: true,
 }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -78,18 +61,18 @@ app.use('/admin', adminRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
-	next(createError(404));
+    next(createError(404));
 });
 
 // error handler
-app.use(function (err, req, res, next) {
-	// set locals, only providing error in development
-	res.locals.message = err.message;
-	res.locals.error = req.app.get('env') === 'development' ? err : {};
+app.use(function (err, req, res) {
+    // set locals, only providing error in development
+    res.locals.message = err.message;
+    res.locals.error = err;
 
-	// render the error page
-	res.status(err.status || 500);
-	res.render('error');
+    // render the error page
+    res.status(err.status || 500);
+    res.render('error');
 });
 
 module.exports = {app, db};

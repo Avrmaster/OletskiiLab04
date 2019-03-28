@@ -9,10 +9,6 @@ a {
     color: #00B7FF;
 }
 
-* {
-    color: #38546d;
-}
-
 .liink {
     color: indigo;
 }
@@ -71,39 +67,15 @@ textarea {
 }
 
 .vertical {
-    display: inline-block;
+    /*!important;*/
+    display: inline;
     width: 4px;
     height: 100%;
     background-color: #00B7FF;
-}
-
-.post-handler {
-    border-left:2px solid brown;
-}
-
-.label {
-    color: darkslateblue;
-    font-size: 2em;
-}
-
-.adminTitle {
-    text-align:  center;
-}
-
-.form-control {
-    padding: 20px
-}
-
-.buttonHolder {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-}
-
-.submitButton {
-    padding: 10px 25px;
-    font-size: 1.5em;
-    background: #00B7FF;
-    border: 0;
+    border-left:1px solid #38546d;
+    border-right:1px solid #16222c;
+    /*height:80px;*/
+    /*position:absolute;*/
+    /*right:249px;*/
+    /*top:10px;*/
 }
